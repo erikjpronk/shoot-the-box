@@ -135,6 +135,33 @@
                 });
             }
         });
+
+        AFRAME.registerComponent('respawn', {
+            schema: {
+                after: {default: ''},
+                delay: {default: 1000}
+            },
+
+            init: function () {
+                if (this.data.after) {
+                    this.el.addEventListener(this.data.after, () => {
+                        this.countdown = this.data.delay;
+                    });
+                }
+            },
+
+            tick: function (time, timeDelta) {
+                if (this.countdown !== undefined) {
+                    this.countdown -= timeDelta;
+                    if (this.countdown < 0) {
+                        this.el.emit('respawn');
+                        this.countdown = undefined;
+                    }
+                }
+            }
+
+
+        });
     </script>
 </head>
 
@@ -154,13 +181,22 @@
         </a-assets>
 
         <a-entity id="enemy-sprite" class="enemy">
+            <!-- Move the box -->
             <a-animation attribute="rotation" repeat="indefinite" easing="linear" dur="128000" to="0 360 0"></a-animation>
+
+            <!-- Bounce the box -->
             <a-animation fill="both" direction="alternate" repeat="indefinite" from="0 -0.6 -2" easing="ease" dur="300" to="0 -0.65 -2" attribute="position"></a-animation>
 
-            <a-box src="#boxTexture_jdriven" position="-1 0.6 -15" rotation="0 45 0">
-                <a-animation begin="click" fill="forwards" repeat="1" direction="alternate" attribute="position" from="-1 0.6 -3" to="-15 7 -15" dur="2000"></a-animation>
+            <a-box src="#boxTexture_jdriven" position="-1 0.6 -15" rotation="0 45 0" respawn="after: collider-hit; delay: 3000">
+
+                <!-- Animate away when hit -->
                 <a-animation attribute="opacity" begin="collider-hit" dur="1000" ease="linear" from="1" to="0"></a-animation>
                 <a-animation attribute="scale" begin="collider-hit" dur="1000" ease="linear" to="0 0 0"></a-animation>
+
+                <!-- Respawn -->
+                <a-animation attribute="opacity" begin="respawn" dur="1000" ease="linear" from="0" to="1"></a-animation>
+                <a-animation attribute="scale" begin="respawn" dur="1000" ease="linear" to="1 1 1"></a-animation>
+
             </a-box>
         </a-entity>
 
